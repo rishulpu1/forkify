@@ -20,5 +20,5 @@ const showRecipe = async function () {
   }
 };
 
-['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));
+recipeView.renderEventHandler(showRecipe);
 //window.addEventListener('hashchange', showRecipe);
