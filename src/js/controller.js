@@ -1,6 +1,7 @@
 import * as model from './model.js';
 import recipeView from './views/recipeView.js';
 import searchView from './views/searchView.js';
+import resultsView from './views/resultsView.js';
 
 const recipeContainer = document.querySelector('.recipe');
 
@@ -23,10 +24,12 @@ const showRecipe = async function () {
 
 const showSearchResults = async function () {
   try {
+    resultsView.renderSpinner();
     const query = searchView.getQuery();
     if (!query) return;
     await model.loadSearchResults(query);
     console.log(model.state.search.results);
+    resultsView.render(model.state.search.results);
   } catch (err) {
     console.error(err);
   }
