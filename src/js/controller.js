@@ -29,7 +29,8 @@ const showSearchResults = async function () {
     if (!query) return;
     await model.loadSearchResults(query);
     console.log(model.state.search.results);
-    resultsView.render(model.state.search.results);
+    //resultsView.render(model.state.search.results);
+    resultsView.render(model.resultsPerPage(2));
   } catch (err) {
     console.error(err);
   }
