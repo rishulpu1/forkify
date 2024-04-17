@@ -2,6 +2,7 @@ import * as model from './model.js';
 import recipeView from './views/recipeView.js';
 import searchView from './views/searchView.js';
 import resultsView from './views/resultsView.js';
+import paginationView from './views/paginationView.js';
 
 const recipeContainer = document.querySelector('.recipe');
 
@@ -30,15 +31,22 @@ const showSearchResults = async function () {
     await model.loadSearchResults(query);
     console.log(model.state.search.results);
     //resultsView.render(model.state.search.results);
-    resultsView.render(model.resultsPerPage(2));
+    resultsView.render(model.resultsPerPage(1));
+    paginationView.render(model.state.search);
   } catch (err) {
     console.error(err);
   }
 };
 
+const paginationController = function (handler) {
+  resultsView.render(model.resultsPerPage(handler));
+  paginationView.render(model.state.search);
+};
+
 const init = function () {
   recipeView.renderEventHandler(showRecipe);
   searchView.addHandlerSearch(showSearchResults);
+  paginationView.addHandlerClick(paginationController);
 };
 init();
 //window.addEventListener('hashchange', showRecipe);
