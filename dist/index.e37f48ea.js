@@ -637,11 +637,18 @@ const controlServings = function(newServing) {
     // recipeView.render(model.state.recipe);
     (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
 };
+const controlAddBookmark = function() {
+    if (!_modelJs.state.recipe.bookmarked) _modelJs.addBookmark(_modelJs.state.recipe);
+    else _modelJs.deleteBookmark(_modelJs.state.recipe.id);
+    //console.log(model.state.recipe);
+    (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
+};
 const init = function() {
     (0, _recipeViewJsDefault.default).renderEventHandler(showRecipe);
     (0, _recipeViewJsDefault.default).addHandlerUpdateServings(controlServings);
     (0, _searchViewJsDefault.default).addHandlerSearch(showSearchResults);
     (0, _paginationViewJsDefault.default).addHandlerClick(paginationController);
+    (0, _recipeViewJsDefault.default).addHandlerAddBookmark(controlAddBookmark);
 };
 init(); //window.addEventListener('hashchange', showRecipe);
 
@@ -683,6 +690,8 @@ parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
 parcelHelpers.export(exports, "resultsPerPage", ()=>resultsPerPage);
 parcelHelpers.export(exports, "updateServings", ()=>updateServings);
+parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
+parcelHelpers.export(exports, "deleteBookmark", ()=>deleteBookmark);
 var _configJs = require("./config.js");
 var _helperJs = require("./helper.js");
 const state = {
@@ -692,7 +701,8 @@ const state = {
         page: 1,
         resultsPerPage: (0, _configJs.RES_PER_PAGE),
         query: ""
-    }
+    },
+    bookmarks: []
 };
 const loadRecipe = async function(id) {
     try {
@@ -708,6 +718,8 @@ const loadRecipe = async function(id) {
             servings: recipe.servings,
             cookingTime: recipe.cooking_time
         };
+        if (state.bookmarks.some((bookmark)=>bookmark.id === id)) state.recipe.bookmarked = true;
+        else state.recipe.bookmarked = false;
     } catch (err) {
         console.error(err);
         throw err;
@@ -725,6 +737,7 @@ const loadSearchResults = async function(query) {
                 image: rec.image_url
             };
         });
+        state.search.page = 1;
     } catch (err) {
         throw err;
     }
@@ -740,6 +753,18 @@ const updateServings = function(newServings) {
         ing.quantity = ing.quantity * newServings / state.recipe.servings;
     });
     state.recipe.servings = newServings;
+};
+const addBookmark = function(recipe) {
+    // Add recipe to bookmarks array
+    state.bookmarks.push(recipe);
+    //marke recipe bookmarked
+    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+};
+const deleteBookmark = function(id) {
+    const index = state.bookmarks.findIndex((el)=>el.id === id);
+    state.bookmarks.splice(index, id);
+    //mark recipe not bookmarked
+    if (id === state.recipe.id) state.recipe.bookmarked = false;
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./config.js":"k5Hzs","./helper.js":"lVRAz"}],"k5Hzs":[function(require,module,exports) {
@@ -798,6 +823,13 @@ class RecipeView extends (0, _viewDefault.default) {
             if (+updateTo > 0) handler(+updateTo);
         });
     }
+    addHandlerAddBookmark(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--bookmark");
+            if (!btn) return;
+            handler();
+        });
+    }
     _generateMarkup() {
         return `
     <figure class="recipe__fig">
@@ -841,9 +873,9 @@ class RecipeView extends (0, _viewDefault.default) {
         <use href="${0, _iconsSvgDefault.default}#icon-user"></use>
       </svg>
     </div>
-    <button class="btn--round">
+    <button class="btn--round btn--bookmark">
       <svg class="">
-        <use href="${0, _iconsSvgDefault.default}#icon-bookmark-fill"></use>
+        <use href="${0, _iconsSvgDefault.default}#icon-bookmark${this._data.bookmarked ? "-fill" : ""}"></use>
       </svg>
     </button>
   </div>
@@ -1216,7 +1248,7 @@ class View {
             const curEl = curElements[i];
             //console.log(curEl, newEl.isEqualNode(curEl));
             //updates changed text
-            if (!newEl.isEqualNode(curEl) && newEl.firstChild.nodeValue.trim() !== "") curEl.textContent = newEl.textContent;
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") curEl.textContent = newEl.textContent;
             //updates changed attributes
             if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>{
                 curEl.setAttribute(attr.name, attr.value);
