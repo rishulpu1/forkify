@@ -5,6 +5,10 @@ class BookmarksView extends View {
   _errorMessage = 'No bookmarks yet find, find a nice recipe and bookmark it!';
   _message = '';
 
+  addRenderHandler(handler) {
+    window.addEventListener('load', handler);
+  }
+
   _generateMarkup() {
     return this._data
       .map(bookmark => previewView.render(bookmark, false))
